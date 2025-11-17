@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+  <style>
+    html, body{
+      width: 100dvw;
+      max-width: 1000dvw;
+      height: 100dvh;
+  }
+
+  #mensagens li.enviada{
+    background: none;
+    background-color: #000ea5;
+    justify-content: right;
+    align-items: flex-end;
+    border-radius: 10px 0px 10px 10px;
+    margin-left: auto;
+    text-align: right;
+  }
+
+  #mensagens li.enviada p:nth-child(1){
+    color:#5865f2;
+  }
+
+  #mensagens li.log {
+    background: none;
+    background-color: none;
+    margin-inline: auto;
+    color: #3d3d3d;
+  }
+
+  body{
+      background-color: rgba(0, 0, 20, 0.95);
+      display: flex;
+      flex-direction: column;
+      margin: 0px auto;
+      justify-content: end;
+      width: 30dvw;
+      min-width: 500px;
+  }
+  
+      ul{
+      color: white;
+      }
+  
+      li::marker {
+      color: black;
+      }
+  
+      form {
+          margin: 0px 0px 0px 40;
+      }
+  
+    form button{
+      width: 35px;
+      height: 35px;
+      border-radius: 100px;
+      background-color: #5865f2;
+      border: 1px solid #6c76e2;
+      transition-duration: 500ms;
+      cursor: pointer;
+      }
+      form button:hover{
+        background-color: #6c76e2;
+        
+      }
+  
+      form input{
+          width: 90%;
+          height:20px;
+          background-color: rgba(0, 0, 20, 0.95);
+          border-right: 1px solid rgba(255, 255, 255, 0.5);
+          border-bottom: 1px solid rgba(255, 255, 255, 0.5);
+          border-radius: 5px;
+          color: white;
+        }
+      
+      #mensagens {
+          display: flex;
+          flex-direction: column;
+          justify-content: flex-start;
+          height: 100%;
+          overflow-y: auto;
+          overflow-x: hidden;
+      }
+  
+      #mensagens li{
+          background: linear-gradient(to bottom right, #5865f2, hwb(235 22% 0%));
+          background-color:#5865f2;
+          height: min-content;
+          width: max-content;
+          max-width: 400px;
+          text-overflow: initial;
+          padding: 5px 20px;
+          border-radius: 0px 10px 10px 10px;
+          margin: 0px 0px 10px 0px;
+          font-family: Arial, Helvetica, sans-serif;
+      }
+
+      #mensagens li div {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        flex-wrap: wrap;
+      }
+
+      #mensagens li div p {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        word-wrap: break-word;
+      }
+
+      #mensagens li div p:nth-child(1){
+        color: #000ea5;
+        letter-spacing: 1px;
+        text-transform: capitalize;
+        margin: 0px 0px -5px 0px;
+        font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+        -webkit-text-stroke: 0.5px;
+        font-size: 20px;
+      }
+
+      #mensagens li div p:nth-child(2){
+        color: white;
+        margin: 0px 0px 0px 0px;
+        font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+      }
+  
+      #mensagens li::marker{
+          color: rgba(255,255,255, 0.0);
+          width: 0px;
+          height: 0px;
+      }
+  
+      #mensagens::-webkit-scrollbar{
+          width: 8px;
+  
+      }
+      #mensagens::-webkit-scrollbar-track{
+          border-radius: 20px;
+          background-color: rgba(255, 255, 255, 0.1);
+      }
+      #mensagens::-webkit-scrollbar-thumb{
+          border-radius: 20px;
+          background-color: #5865f2;
+      }
+
+      header{
+        font-size: 20px;
+        color: white;
+        background-color: #1a3658;
+        
+      }
+
+      header p {
+        margin: 20px;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      }
+
+  </style>
+  <head>
+    <title>CHAT</title>
+  </head>
+  <body id="body">
+    <header>
+      <p> <strong>#</strong> chat-em-grupo-online </p>
+    </header>
+    <ul id="mensagens">
+    </ul>
+    <form>
+      <input id="nome" placeholder="Seu nome de usuário" autocomplete="off" required/><br>
+      <input id="mensagem" placeholder="Sua mensagem" autocomplete="off" required/>
+      <button>➤</button>
+    </form>
+
+    <!-- Importa o script do Socket.IO -->
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+
+      // Cria uma instância do Socket.IO
+      const socket = io();
+
+      // Seleciona o input do nome do usuário
+      const nomeInput = document.getElementById('nome');
+
+      // Seleciona o input da mensagem
+      const mensagemInput = document.getElementById('mensagem');
+
+      // Seleciona a lista de mensagens
+      const mensagens = document.getElementById('mensagens');
+
+
+      // Adiciona um evento de escuta para o envio do formulário
+      document.querySelector('form').addEventListener('submit', event => {
+        
+        // Previne o envio padrão do formulário
+        event.preventDefault();
+        // Obtém o valor do input do nome do usuário
+        const nome = nomeInput.value;
+        // Obtém o valor do input da mensagem
+        const mensagem = mensagemInput.value;
+        
+        //Mostra q entrou no chat com a primeira mensagem
+        if (!nomeInput.disabled) {
+          socket.emit("user joined", nome);
+        }
+
+        // Verifica se ambos os campos foram preenchidos antes de enviar a mensagem
+        // Verifica se os valores são válidos (não estão em branco)
+        //trim() é um método da linguagem JavaScript que remove os espaços em branco do início e do final de uma string.
+        // emit envia um evento chamado "chat message" com um objeto contendo os valores de nome e mensagem para o servidor.
+        nome.trim() && mensagem.trim() && socket.emit('chat message', { nome, mensagem });
+        
+        // Limpa o input da mensagem
+        mensagemInput.value = '';
+        
+
+        // Desabilita o input do nome do usuário após a primeira mensagem
+        nomeInput.disabled = true;
+      });
+
+      // Adiciona um evento de escuta para o evento de mensagem recebido do servidor
+      socket.on('chat message', dados => {
+        
+        // Cria um elemento de lista para exibir a mensagem
+        const li = document.createElement('li');
+        const p = document.createElement('p');
+        const p2 = document.createElement('p')
+        const p3 = document.createElement('p')
+        const p4 = document.createElement('p')
+        const div = document.createElement('div')
+
+        // Define o texto da mensagem
+        div.appendChild(p)
+        div.appendChild(p2)
+        li.appendChild(div)
+        p.textContent = `${dados.nome}`;
+        p2.textContent = `${dados.mensagem}`;
+
+        // Adiciona o elemento de lista à lista de mensagens
+        mensagens.appendChild(li);
+         if(nomeInput.value === dados.nome){
+          li.classList.add('enviada')
+        }
+
+
+      });
+      
+      socket.on("user joined", nome => {
+        console.log(`${nome} Conectou`)
+        const li = document.createElement("li");
+        li.classList.add("log");
+        li.textContent = `${nome} entrou no chat`;
+        mensagens.appendChild(li);
+      });
+
+
+      
+      //Evento para quando o cliente se desconecta do servidor via Socket.io
+      socket.on("user left", nome => {
+        const li = document.createElement("li");
+        li.classList.add("log");
+        li.textContent = `${nome} saiu do chat`;
+        mensagens.appendChild(li);
+      });
+  
+
+    </script>
+  </body>
+</html>
